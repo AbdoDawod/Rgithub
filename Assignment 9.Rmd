@@ -1,0 +1,61 @@
+---
+title: "Assignment 9"
+author: "Abdaljbbar Dawod"
+date: "`r Sys.Date()`"
+output: html_document
+---
+```{r}
+library(astsa)
+library(forecast)
+plot.ts(oil, xlab = "Time",ylab="oil prices ($)", main = "Crude oil prices in dollars per barrel")
+```
+
+Differencing may be necessary for the data in the above plot due to its noticeable upward trend.
+
+Plotting the ACF and PACF of the data yields:
+
+```{r}
+acf2(oil, 25)
+```
+
+It is clear from the ACF and PACF that the series is not stationary as ACF is decaying very sloly 
+
+We then create a differenced data to make the data stationary on the mean and remove the trend
+
+```{r}
+plot(diff(oil),ylab="oil prices ($)", main = 'Differenced Crude oil prices')
+```
+
+The plot looks good, but there is increase in the variance of the series. Hence, we should take log transformation before the differencing.
+
+```{r}
+plot(diff(log(oil),1), ylab = 'Diff(Log(Price))')
+acf2(diff(log(oil),1))
+```
+
+
+```{r}
+plot(diff(log(oil),2), ylab = 'Diff(Log(Price),2)')
+acf2(diff(log(oil),2))
+```
+
+
+```{r}
+(fit.1 <- arima(log(oil), order=c(0,2,1)))
+tsdiag(fit.1)
+qqnorm(resid(fit.1))
+qqline(resid(fit.1), datax = FALSE, distribution = qnorm, col='red')
+```
+
+
+```{r}
+(lamda <- BoxCox.lambda(oil))
+
+g <-BoxCox(oil, lamda)
+acf2(diff(g,1))
+#auto.arima(diff(g,1))
+(fit.2 <- arima(g, order=c(1,1,3),seasonal = list(order=c(1,0,1))))
+#tsdiag(fit.2)
+```
+
+
